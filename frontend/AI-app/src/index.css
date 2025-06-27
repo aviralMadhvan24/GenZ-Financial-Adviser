@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+  }
+  body {
+    @apply bg-gray-50 text-gray-900 m-0;
+  }
+}
+
+@layer components {
+  .auth-card {
+    @apply bg-white rounded-xl shadow-lg border border-gray-100
+           w-full max-w-md p-8 min-h-[32rem]
+           transition-all duration-300 hover:shadow-xl;
+  }
+
+  .auth-label {
+    @apply block text-sm font-medium mb-2 text-gray-600;
+  }
+
+  .auth-input {
+    @apply w-full px-4 py-2.5 rounded-lg border border-gray-200
+           focus:outline-none focus:ring-2 focus:ring-primary/80
+           focus:border-transparent placeholder-gray-400
+           transition-all duration-200;
+  }
+
+  .auth-button {
+    @apply w-full py-3 rounded-lg bg-gradient-to-r from-primary to-primary-dark 
+           text-white font-semibold hover:opacity-95 transition-all
+           shadow-md hover:shadow-lg active:scale-[0.98];
+  }
+
+  .auth-link {
+    @apply text-primary hover:text-primary-dark text-sm font-medium
+           transition-colors duration-200;
+  }
+}
