@@ -1,0 +1,203 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  age          Int?
+  avatar       String?
+  role         Role     @default(USER)
+  xp           Int      @default(0)
+  level        Int      @default(1)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  sessions         Session[]
+  incomes          Income[]
+  expenses         Expense[]
+  goals            Goal[]
+  budgets          Budget[]
+  xpLogs           XpLog[]
+  userAchievements UserAchievement[]
+  userChallenges   UserChallenge[]
+
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  refreshToken String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Income {
+  id        String      @id @default(uuid())
+  userId    String
+  source    String
+  amount    Decimal     @db.Decimal(10, 2)
+  frequency Frequency   @default(MONTHLY)
+  date      DateTime
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("incomes")
+}
+
+model Expense {
+  id        String   @id @default(uuid())
+  userId    String
+  category  String
+  amount    Decimal  @db.Decimal(10, 2)
+  date      DateTime
+  recurring Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("expenses")
+}
+
+model Goal {
+  id         String   @id @default(uuid())
+  userId     String
+  type       GoalType
+  title      String
+  amount     Decimal  @db.Decimal(10, 2)
+  targetDate DateTime
+  progress   Decimal  @default(0) @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("goals")
+}
+
+model Budget {
+  id       String  @id @default(uuid())
+  userId   String
+  category String
+  limit    Decimal @db.Decimal(10, 2)
+  month    String // Format: YYYY-MM
+  spent    Decimal @default(0) @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category, month])
+  @@map("budgets")
+}
+
+model XpLog {
+  id     String @id @default(uuid())
+  userId String
+  source String
+  points Int
+  date   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("xp_logs")
+}
+
+model Achievement {
+  id          String @id @default(uuid())
+  title       String
+  description String
+  criteria    String
+  points      Int
+  icon        String?
+  createdAt   DateTime @default(now())
+
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String   @id @default(uuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}
+
+model Challenge {
+  id          String @id @default(uuid())
+  title       String
+  description String
+  duration    Int // in days
+  criteria    String
+  points      Int
+  createdAt   DateTime @default(now())
+
+  userChallenges UserChallenge[]
+
+  @@map("challenges")
+}
+
+model UserChallenge {
+  id          String          @id @default(uuid())
+  userId      String
+  challengeId String
+  status      ChallengeStatus @default(ACTIVE)
+  progress    Int             @default(0)
+  startedAt   DateTime        @default(now())
+  completedAt DateTime?
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
+  @@map("user_challenges")
+}
+
+enum Role {
+  USER
+  ADMIN
+  ADVISOR
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum GoalType {
+  SAVE
+  INVEST
+  PAYOFF
+}
+
+enum ChallengeStatus {
+  ACTIVE
+  COMPLETED
+  FAILED
+  PAUSED
+}  
